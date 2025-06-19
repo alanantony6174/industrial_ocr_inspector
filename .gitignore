@@ -2,3 +2,5 @@ captured.png
 output
 .vscode
 .venv
+ocr/__pycache__
+ui/__pycache__

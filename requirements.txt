@@ -1,0 +1,6 @@
+opencv-python
+numpy
+pyrealsense2
+paddleocr
+dearpygui
+pyyaml

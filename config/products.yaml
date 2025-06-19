@@ -1,0 +1,13 @@
+products:
+  product_A:
+    expected_fields:
+      - label
+      - batch_no
+      - expiry_date
+    roi: [100, 200, 500, 600]
+
+  product_B:
+    expected_fields:
+      - qr_code
+      - serial_number
+    roi: [50, 100, 600, 700]
