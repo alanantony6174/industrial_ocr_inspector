@@ -43,18 +43,21 @@ def extract_fields(json_path, score_thresh=0.0):
             'center': center_of(b),
         })
 
-    # initialize
     result = {'batch_no': None, 'mfg_date': None, 'exp_date': None}
 
-    # 1) inline EXP / MFG
+    # 1) inline EXP / MFG / MFD
     for blk in blocks:
         txt, low = blk['text'], blk['low']
+
+        # EXP
         if 'exp' in low:
             m = re.search(r'exp\.?\s*[:\-]?\s*(.+)', txt, re.IGNORECASE)
             result['exp_date'] = (m.group(1) if m else txt).strip()
             continue
-        if 'mfg' in low or 'manufacture' in low:
-            m = re.search(r'(?:mfg|manufacture)\.?\s*[:\-]?\s*(.+)', txt, re.IGNORECASE)
+
+        # MFG or MFD
+        if 'mfg' in low or 'mfd' in low or 'manufacture' in low:
+            m = re.search(r'(?:mfg|mfd|manufacture)\.?\s*[:\-]?\s*(.+)', txt, re.IGNORECASE)
             result['mfg_date'] = (m.group(1) if m else txt).strip()
             continue
 
@@ -75,24 +78,19 @@ def extract_fields(json_path, score_thresh=0.0):
                 if b is not batch_label
                 and 'exp' not in b['low']
                 and 'mfg' not in b['low']
+                and 'mfd' not in b['low']
                 and not DATE_PAT.search(b['text'])
             ]
             if cands:
                 nearest = min(cands, key=lambda b: dist(c0, b['center']))
                 result['batch_no'] = nearest['text']
 
-    # 3) normalize missing → “N/A”
-    for k in result:
-        if not result[k]:
-            result[k] = None
-
-    # 4) FALLBACK: if *all* are still None, assume last-three rec_texts
+    # 3) FALLBACK: last three lines if all still None
     if all(v is None for v in result.values()):
         if len(texts) >= 3:
-            # last 3 items: [batch, mfg, exp]
             result['batch_no'], result['mfg_date'], result['exp_date'] = texts[-3:]
 
-    # 5) finally, ensure no None slips through
+    # 4) ensure no None
     for k in result:
         if not result[k]:
             result[k] = 'N/A'
